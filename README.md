@@ -1,5 +1,10 @@
 # Atividade Prática Observabilidade
 
+Desafio final do curso de Monitoramento e Observabilidade da O2B Academy.
+
+# Repositório original e base do desafio
+Respositório do [Professor Patrick J. Cardoso](https://gitlab.com/patrickjcardoso/desafio-observabilidade.git)
+
 ## Objetivo do Laboratório:
 
 Criar um ambiente de observabilidade usando Prometheus e Grafana para monitorar uma aplicação de exemplo.
@@ -10,6 +15,10 @@ Criar um ambiente de observabilidade usando Prometheus e Grafana para monitorar 
 * Python Application
 * Prometheus
 * Grafana
+* Docker compose
+* AlertManager
+* Webhook
+* Docker
 
 ## Pré-requisitos:
 
@@ -21,7 +30,7 @@ Criar um ambiente de observabilidade usando Prometheus e Grafana para monitorar 
 
 ## Passos:
 
-### Passo 1: Instalação do Prometheus e Grafana
+### Passo 1(Opcional): Instalação do Docker compose, Prometheus e Grafana
 
 1.1. Baixe o Docker Compose e instale-o em sua máquina se você ainda não o tiver:
 
@@ -75,6 +84,18 @@ scrape_configs:
   ```
 
 * **Dica:** Você precisará ajustar a identação do arquivo
+### Passo 1(oficial): Configurando Docker compose e Iniciando o Ambiente de Observabilidade
+1.1 Após clonar o repositório, acesse o diretório que contém o docker compose.
+    pwd
+    ls
+    cd
+1.2 Coloque os seguintes comando para iniciar os serviços Prometheus e Grafana:
+
+    $ docker-compose up -d
+
+1.3 Certifique-se que os containers do Prometheus e do Grafana subiram e estão funcionando:
+
+    $ docker-compose ps
 
 ### Passo 2: Configurando a Aplicação de Exemplo
 
@@ -100,6 +121,11 @@ python app.py
 
 Sua aplicação estará disponível em http://localhost:3001. Você pode acessar a página inicial e também verificar as métricas expostas em http://localhost:3001/metrics.
 
+![Alt text](/prints/app-py.png)
+
+![Alt text](/prints/metrics-app.png)
+
+
 ### Passo 3: Gerando métricas na aplicação
 
 Acesse sua aplicação em clique em: Gerar Erro e depois em Calcular Duração
@@ -119,20 +145,21 @@ No arquivo **prometheus.yml** no diretório prometheus (conforme configurado ant
 
 ![Alt text](image.png)
 
-### Passo 5: Iniciando o Ambiente de Observabilidade
+### Passo 5: Testando a segunda aplicação(opcional)
+5.1 Abra um novo terminal.
 
-5.1 Volte para o diretório raiz do seu projeto e execute o seguinte comando para iniciar os serviços Prometheus e Grafana:
+5.2 Acesse a pasta python/
 
-```console
-$ cd ..
-$ docker-compose up -d
-```
+5.3 Dê o seguinte comando para iniciar a aplicação
 
-5.2 Certifique-se que os containers do Prometheus e do Grafana subiram e estão funcionando:
 
-```console
-$ docker-compose ps
-```
+    python eve.py
+
+5.4 Acesse na porta http://localhost:3002.
+
+[Código](/prints/2aplicação.png) 
+
+[Aplicação](/prints/eve-py.png) 
 
 ### Passo 6: Acessando o Promethues e verificando as métricas da aplicação
 
@@ -145,6 +172,14 @@ $ docker-compose ps
   * O status deve estar UP para ambos os targets (Prometheus e your-app)
   * Caso o status da aplicação não esteja UP, certifique-se que a aplicação esteja rodando (Item 2.3).
   * Caso ainda não esteja UP ou com outro status, reveja a atividade, pois algum ponto pode ter faltado.
+
+  [Targets](/prints/PrometheusTargets.png)
+
+  [Rules](/prints/PrometheusRules.png)
+
+  [Table](/prints/PrometheusTable8.png)
+
+
 
 6.3 Agora vamos olhar as métricas configuradas em nossa aplicação:
 
@@ -159,25 +194,50 @@ $ docker-compose ps
 
 7.3. Configure o Prometheus como uma fonte de dados:
 
-* Clique em "Configuration" no menu à esquerda.
-* Clique em "Data Sources" e, em seguida, em "Add data source".
+* Clique em "Home" no menu à esquerda.
+* Clique em "Connections" e,"Data source' em seguida, em "Add data source".
 * Escolha "Prometheus" como o tipo de fonte de dados.
 * Na seção "HTTP", configure o URL para http://prometheus:9090.
 * Clique em "Save & Test".
 
 ### Passo 8: Criando um Painel no Grafana
 
-8.1. Crie um novo painel clicando em "Create" e escolha "Dashboard".
+8.1. Crie um novo painel clicando em "Home" e escolha "Dashboard".
 
-8.2. Clique em "Add new panel" e escolha "Graph".
+8.2. Clique em "create Dashboard" e clique "add visualization".
 
-8.3. Configure sua consulta Prometheus para visualizar métricas da sua aplicação.
+8.3. Selecione o Prometheus como fonte de origem.
+
+8.4. Selecione a métrica que gostaria de adicionar ao dashboard na opção de metric (app_erros_total), Adicione um título para o painel na opção Title, Clique em Run queries para gerar o gráfico e clique em apply.
+
+[Grafana](/prints/Grafana8.png)
+
 
 ### Passo 9: Configurando e gerando alerta com o Alertmanager.
+9.1 Acesse o Webhook e copie a URL fornecida por lá.
 
-Agora é com você, configure os passos necessários para ser possível a geração de alertas utilizando o alertmanager e o webhook.
+9.2 Cole a URL no local específicado no arquivo alertmanager.yml
+
+    global:
+
+    resolve_timeout: 5m
+
+    route:
+
+      receiver: webhook_receiver
+
+    receivers:
+
+    - name: webhook_receiver
+
+      webhook_configs:
+
+        - url: 'https://webhook.site/8f062bd0-626c-42fc-85ee-1970fc4fb00b'
+
+          send_resolved: false
 
 
-Envie seu arquivos atualizados (docker-compose.yml, rules.yml, alertmanager.yml) para o e-mail: academy@o2b.com.br com prints do seu ambiente funcionando: Webhook disparado.
+[Webhook](/prints/WebhookPost.png)
 
-**Dica:** Utilize a documentação do promethues para fazer consultas e finalizar essa etapa.
+**Dica:** Utilize a documentação do promethues e docker para fazer consultas e finalizar essa etapa.
+
